@@ -3,31 +3,43 @@ __author__ = 'OTHREE'
 from Tkinter import *
 import ttk
 import tkMessageBox as MSGBOX
-import MySQLdb
-import ttkcalender
 import tkSimpleDialog as Input
 import datetime
 import os
+
+import MySQLdb
+
+import ttkcalender
 
 os.environ['SDL_VIDEO_CENTRED'] = '1'
 HOST = "localhost"
 DATABASE_USERNAME = "root"
 DATABASE = "carpool"
-import email
 
-#main class vehicle which contains all code
+# main class vehicle which contains all code
 class Vehicle:
-    #constructor
+    # constructor
+
+
     def __init__(self, parent):
-        #initialising the Parent window
+        # initialising the Parent window
         self.parent = parent
         self.parent.title("Vehicle App")
         style = ttk.Style()
         style.theme_use('clam')
 
 
-
 def main():
+    driverid = "";
+    vid = ""
+
+    def setdid(var):
+        driverid = var
+
+    def getdid(self):
+        return driverid
+
+    drid = ""
     open = False
     root = Tk()
     root.geometry("350x250+500+300")
@@ -44,7 +56,7 @@ def main():
     entry_2.grid(row=11, column=1, pady=5)
 
 
-    #signing up
+    # signing up
     def signup():
         valcom = 'Male'
         rot = Tk()
@@ -110,7 +122,7 @@ def main():
             VALUES ('%s', '%s', '%s', '%s', '%s','%s','%s','%s','%s' )" % \
                         (entry_names.get(), entry_address.get(), entry_mobile.get(), entry_email.get(), cm_gender.get(),
                          cm_usertype.get(),
-                         entry_username.get(), entry_password.get(),str(date[0:19]))
+                         entry_username.get(), entry_password.get(), str(date[0:19]))
 
             succesful = True
             try:
@@ -126,8 +138,54 @@ def main():
                 db.close()
 
             if (succesful == True):
-                MSGBOX.showinfo(title="SUCCESS", message="ACCOUNT FOR " + entry_names.get() + " Successfully created")
-                rot.destroy()
+                if (cm_usertype.get() == 'Driver'):
+                    window = Tk()
+                    window.geometry("450x310+300+200")
+                    win = LabelFrame(window, text="Driver Licence Registration")
+                    label_name = Label(win, text="Licence Number")
+                    label_issuance = Label(win, text="Date of First Issuance")
+                    label_name.grid(row=0, column=0)
+                    label_issuance.grid(row=1, column=0)
+
+                    entry_name = Entry(win)
+                    entry_issuance = ttkcalender.Calendar(win)
+
+                    entry_name.grid(row=0, column=1)
+                    entry_issuance.grid(row=1, column=1)
+
+                    def doLicence():
+                        date = entry_issuance.selection
+                        date = date.date()
+                        try:
+                            sql="INSERT INTO licence (driver_id, licence_no, iss_date) VALUES ('%s', '%s', '%s')" %(entry_username.get(),entry_name.get(),date)
+                            print sql
+                            db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
+                            cursor = db.cursor()
+
+                            cursor.execute(sql)
+                            db.commit()
+                        except:
+                            db.rollback()
+                            print "jlkjj"
+                            succesful = False
+                        finally:
+                            db.close()
+                            MSGBOX.showinfo(title="SUCCESS", message="ACCOUNT FOR " + entry_names.get() + " Successfully created")
+                            rot.destroy()
+                        window.destroy();
+
+
+                        pass
+
+                    send = Button(win, text="Submit", command=doLicence)
+
+                    send.grid(row=2, columnspan=2)
+
+                    win.pack()
+                    window.mainloop()
+                else:
+                    MSGBOX.showinfo(title="SUCCESS", message="ACCOUNT FOR " + entry_names.get() + " Successfully created")
+                    rot.destroy()
             else:
                 MSGBOX.showerror(title="ERROR", message="ACCOUNT NOT CREATED\n Check database connection and try again")
 
@@ -150,9 +208,9 @@ def main():
 
     check = Button(frame, text="SIGN UP", pady=0, relief=RAISED, command=signup)
 
-    check.grid(column=0,row=17,columnspan=1)
+    check.grid(column=0, row=17, columnspan=1)
 
-    #login Action
+    # login Action
     def login():
         name = ""
         sql = "SELECT * FROM users \
@@ -280,7 +338,7 @@ def main():
                 entry_vehicle_cat.grid(row=5, column=1, pady=5)
 
                 def regvec():
-                    if(entry_vehicle_type.get()=='Hired'):
+                    if (entry_vehicle_type.get() == 'Hired'):
                         window = Tk()
                         window.geometry("250x610+300+200")
                         win = LabelFrame(window, text="Agency details")
@@ -296,8 +354,8 @@ def main():
 
                         def agencyreg():
                             sql2 = "insert into agency_details (name, address, user_id) values ('%s', '%s','%s')" % \
-                                  (entry_name.get(), entry_address.get(), name)
-                            db = MySQLdb.connect(HOST,DATABASE_USERNAME,"",DATABASE)
+                                   (entry_name.get(), entry_address.get(), name)
+                            db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
 
                             cursor = db.cursor()
                             cursor.execute(sql2)
@@ -307,8 +365,8 @@ def main():
                             sql = "INSERT INTO vehicle (make, \
                             year, model, seats, type ,category,user_id) \
                             VALUES ('%s', '%s', '%s', '%s', '%s','%s','%s')" % \
-                                    (entry_vehicle_make.get(), entry_year_of_purchase.get(), entry_vehicle_model.get(),
-                                     entry_no_of_seats.get(), entry_vehicle_type.get(), entry_vehicle_cat.get(), name)
+                                  (entry_vehicle_make.get(), entry_year_of_purchase.get(), entry_vehicle_model.get(),
+                                   entry_no_of_seats.get(), entry_vehicle_type.get(), entry_vehicle_cat.get(), name)
                             succesfull = True
                             try:
                                 db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
@@ -327,20 +385,18 @@ def main():
                             else:
                                 MSGBOX.showerror("ERROR", "COULD NOT ADD VEHICLE\nPLEASE TRY AGAIN")
 
-                        send = Button(win, text="Submit",command=agencyreg)
+                        send = Button(win, text="Submit", command=agencyreg)
 
                         send.grid(row=2, columnspan=2)
 
                         win.pack()
                         window.mainloop()
 
-
-
                     sql = "INSERT INTO vehicle (make, \
                         year, model, seats, type ,category,user_id) \
                         VALUES ('%s', '%s', '%s', '%s', '%s','%s','%s')" % \
-                                (entry_vehicle_make.get(), entry_year_of_purchase.get(), entry_vehicle_model.get(),
-                                 entry_no_of_seats.get(), entry_vehicle_type.get(), entry_vehicle_cat.get(), name)
+                          (entry_vehicle_make.get(), entry_year_of_purchase.get(), entry_vehicle_model.get(),
+                           entry_no_of_seats.get(), entry_vehicle_type.get(), entry_vehicle_cat.get(), name)
                     succesfull = True
                     try:
                         db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
@@ -392,6 +448,7 @@ def main():
                         car.append(row[4])
                         car.append(row[5])
                         car.append(row[6])
+                        car.append(int(row[0]))
                         veh_cars.append(i)
                         allcar.append(car)
                         i += 1
@@ -404,11 +461,18 @@ def main():
                 j = 0
                 rowcount = 0
                 colcount = 0
+                title = Label(frame_box, text="|S/N|  |MAKE|   |YEAR OF PURCHASE|  |MODEL| |NO OF PASSENGERS| |VEHICLE TYPE|    |VEHICLE CAT|",anchor=E)
+                title.pack(side=TOP)
+                lba = Listbox(frame_box)
+                lba.pack(fill=X,side=BOTTOM)
+                lba.delete(first=0, last=lba.size())
+                dictcar ={}
                 for cars in allcar:
-                    veh_cars[j] = Label(frame_box,
-                                        text=str(j + 1) + ". " + cars[0] + " " + cars[1] + " " + cars[2] + " " + cars[
-                                            3] + " " + cars[4] + " " + cars[5])
-                    veh_cars[j].grid(row=rowcount, column=colcount, pady=8, sticky=W, columnspan=5)
+                    var=str(j + 1) + ". |" + cars[0] + "|      |" + cars[1] + "|       |" + cars[2] + "|       |" + cars[
+                                            3] + "|        |" + cars[4] + "|             |" + cars[5]+"|"
+                    lba.insert(0,var)
+                    dictcar[var] = cars[6]
+
                     rowcount += 1
                     j += 1
 
@@ -419,8 +483,8 @@ def main():
                 label_sharing_cost = Label(bottom_frame, text="Sharing cost(per km)")
                 label_starting_point = Label(bottom_frame, text="Sharing point")
                 label_destination = Label(bottom_frame, text="Destination")
-                label_start = Label(bottom_frame, text="Start time")
-                label_estimated = Label(bottom_frame, text="Estimated Arrival Time")
+                label_start = Label(bottom_frame, text="Start time (24hr)")
+                label_estimated = Label(bottom_frame, text="Estimated Arrival Time (24hr)")
                 label_passengers = Label(bottom_frame, text="No of Allowed Passengers")
                 label_date = Label(bottom_frame, text="Trip Date")
                 label_gender = Label(bottom_frame, text="Gender Preference")
@@ -462,31 +526,39 @@ def main():
                 entry_gender.grid(row=7, column=1, pady=5)
 
                 def shareVehicles():
-                    date = entry_date.selection
-                    date = date.date()
-                    sql = sql = "INSERT INTO vehicle_sharing (cost, \
-                        start_point, dest_point, start_time, arrival_time ,no_pass ,date, gender, user_id) \
-                        VALUES ('%s', '%s', '%s', '%s', '%s','%s','%s','%s','%s')" % \
-                                (entry_sharing_cost.get(), entry_starting_point.get(), entry_destination.get(),
-                                 entry_start.get(),
-                                 entry_estimated.get(), str(entry_passengers.get()), date, entry_gender.get(), name)
-                    succesfull = True
-                    try:
-                        db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
-                        cursor = db.cursor()
-                        cursor.execute(sql)
-                        db.commit()
-                    except:
-                        db.rollback()
-                        succesfull = False
-                    finally:
-                        db.close()
+                    car_id = dictcar.get(lba.selection_get())
+                    print car_id
+                    if(str(car_id).upper()=="None".upper()):
+                        MSGBOX.showerror("ERROR", "Please Select a Car to Share")
+                        pass
 
-                    if succesfull == True:
-                        MSGBOX.showinfo("SUCCESS", "SHARED VEHICLE ADDED")
-                        view_window.destroy()
                     else:
-                        MSGBOX.showerror("ERROR", "COULD NOT ADD VEHICLE\nPLEASE TRY AGAIN")
+                        date = entry_date.selection
+                        date = date.date()
+                        sql = sql = "INSERT INTO vehicle_sharing (cost, \
+                            start_point, dest_point, start_time, arrival_time ,no_pass ,date, gender, user_id,vid) \
+                            VALUES ('%s', '%s', '%s', '%s', '%s','%s','%s','%s','%s','%s')" % \
+                                    (entry_sharing_cost.get(), entry_starting_point.get(), entry_destination.get(),
+                                     entry_start.get(),
+                                     entry_estimated.get(), str(entry_passengers.get()), date, entry_gender.get(), name,car_id)
+                        succesfull = True
+                        try:
+                            db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
+                            cursor = db.cursor()
+                            cursor.execute(sql)
+                            db.commit()
+                        except:
+                            db.rollback()
+                            succesfull = False
+                        finally:
+                            db.close()
+
+                        if succesfull == True:
+                            MSGBOX.showinfo("SUCCESS", "SHARED VEHICLE ADDED")
+
+                            view_window.destroy()
+                        else:
+                            MSGBOX.showerror("ERROR", "COULD NOT ADD VEHICLE\nPLEASE TRY AGAIN")
 
                     pass
 
@@ -499,7 +571,7 @@ def main():
                 view_window.mainloop()
 
             def viewShared():
-                toal=""
+                toal = ""
                 view_window = Tk()
                 view_window.geometry("650x610+300+50")
                 frame_box = LabelFrame(view_window, width=600, height="400", text="Shared Vehicles for " + real_name,
@@ -519,11 +591,10 @@ def main():
                     cursor.execute(sql)
                     results = cursor.fetchall()
                     for row in results:
-
                         i = 0
                         car = []
                         car.append(row[2])
-                        car.append("cost: "+row[1])
+                        car.append("cost: " + row[1])
                         car.append(row[3])
                         car.append(row[4])
                         car.append(row[5])
@@ -549,9 +620,9 @@ def main():
                     j += 1
 
                 frame_box.pack(fill="both")
-#
-# Frame for requested vehickes
-#
+                #
+                # Frame for requested vehickes
+                #
                 bottom_view = LabelFrame(view_window, width=700, height="600", text="Requested Vehicles", relief=RAISED,
                                          padx=20, pady=5)
                 lb = Listbox(bottom_view)
@@ -563,7 +634,7 @@ def main():
 
                 def listset():
                     sql = "SELECT * FROM request \
-                    WHERE driver_id = '%s'" % (name) +"ORDER BY `request`.`bearable` ASC"
+                    WHERE driver_id = '%s'" % (name) + "ORDER BY `request`.`bearable` ASC"
                     print name
                     db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
                     cursor = db.cursor()
@@ -583,8 +654,10 @@ def main():
                             veh_cars.append(i)
                             allcar.append(car)
                             time = row[3]
-                            var = "Request From " + row[4] + ", " + row[5] + ", on " + time[0:19] + " Destination: " + row[
-                                2] + ", Pick up point: " + row[1] +"Bearable Cost: "+row[6]+ " (" + row[7].upper() + ") "
+                            var = "Request From " + row[4] + ", " + row[5] + ", on " + time[0:19] + " Destination: " + \
+                                  row[
+                                      2] + ", Pick up point: " + row[1] + "Bearable Cost: " + row[6] + " (" + row[
+                                      7].upper() + ") "
                             reqs[var] = int(row[0])
                             lb.insert(i, var)
                             i += 1
@@ -780,7 +853,6 @@ def main():
                         MSGBOX.showerror("ERROR", "AN ERROR OCCURED")
                     pass
 
-
                 but = ttk.Button(frae, text="SUBMIT", command=submit)
                 but.grid(row=10, column=0)
 
@@ -791,7 +863,7 @@ def main():
             btn1.pack(side=LEFT)
             btn2 = Button(framboxbtm, text="Register Vehicle", pady=0, font=2, relief=GROOVE, command=registerVehicle)
             btn2.pack(side=LEFT)
-            btn3 = Button(framboxbtm, text="View Registered Vehicles", pady=0, font=2, relief=GROOVE,
+            btn3 = Button(framboxbtm, text="View/Share Registered Vehicles", pady=0, font=2, relief=GROOVE,
                           command=viewVehicles)
             btn3.pack(side=LEFT)
             btn4 = Button(framboxbtm, text="View Your Shared Vehicle", pady=0, font=2, relief=GROOVE,
@@ -859,6 +931,7 @@ def main():
             framboxbtm = Frame(rootd, relief=GROOVE)
 
             def requestVehicle():
+
                 sql = "SELECT * FROM vehicle_sharing ORDER BY `vehicle_sharing`.`date` DESC "
 
                 db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
@@ -871,14 +944,14 @@ def main():
                 try:
                     cursor.execute(sql)
                     results = cursor.fetchall()
-                    for row in results:
+                    for row_vs in results:
                         i = 0
                         car = []
 
                         # car.append(row[1] +" to "+row[2])
-                        store[row[2] + " to " + row[3]] = int(row[0])
+                        store[row_vs[2] + " to " + row_vs[3]] = int(row_vs[0])
 
-                        allcar.append(row[2] + " to " + row[3])
+                        allcar.append(row_vs[2] + " to " + row_vs[3])
                         i += 1
                         hasCar = True
                 except:
@@ -909,33 +982,81 @@ def main():
                     allcar = [];
                     veh_cars = []
 
+
                     try:
                         cursor.execute(sql)
                         results = cursor.fetchall()
-                        for row in results:
+                        for row_vees in results:
+
+
+                            sql_veh = "select * from vehicle where id = '%s'"%row_vees[10]
+                            print sql_veh
+                            dbw = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
+                            cursorw = dbw.cursor()
+                            cursorw.execute(sql_veh)
+                            resultw = cursorw.fetchone()
+
+                            sql_ve = "select * from licence where driver_id = '%s'"%row_vees[9]
+                            print sql_ve
+                            dbq = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
+                            cursorq = dbq.cursor()
+                            cursorq.execute(sql_ve)
+                            resultq = cursorq.fetchone()
+
+
+
                             MSGBOX.showinfo("Details For " + combo_start.get(),
-                                            "Starting point :" + row[2] + "\nDestination :" + row[3] + "\n" \
-                                                                                                       "Start time: " +
-                                            row[4] + "\nEstimated Arrival Time :" + row[
-                                                5] + "\nNumber of Passengers :" + row[6] + "" \
-                                                                                           "\nDate :" + row[
-                                                7] + "\nGender Preference :" + row[8]+"\nCost per Km :"+row[1])
-                            pass
+                                            "Starting point :" + row_vees[2] + "\nDestination :" + row_vees[3] + "\n" \
+                                                                                                                 "Start time: " +
+                                            row_vees[4] + "\nEstimated Arrival Time :" + row_vees[
+                                                5] + "\nNumber of Passengers :" + row_vees[6] + "" \
+                                                                                                "\nDate :" + row_vees[
+                                                7] + "\nGender Preference :" + row_vees[8] + "\nCost per Km :" +
+                                            row_vees[1]+"\nVehilcle Type: "+resultw[6]+"\nDriving Since: "+resultq[3])
+
                     except:
                         print "Error: unable to fecth data"
                     finally:
                         print allcar
 
                 def getv():
+                    # to get driver id
+                    print store[combo_start.get()]
+                    sqli = "SELECT * FROM vehicle_sharing WHERE id = '%i'" % (int(store[combo_start.get()]))
+
+                    db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
+                    cursor = db.cursor()
+
+                    hasCar = False
+                    allcar = [];
+                    veh_cars = []
+
+                    try:
+                        cursor.execute(sqli)
+                        results = cursor.fetchall()
+                        for r_vees in results:
+                            driverid = r_vees[9]
+                            vid = r_vees[10]
+                            setdid(r_vees[9])
+
+                            print " dsfsdfasdfadsfhkdsf", r_vees[9], " hgghhggh ", driverid
+
+                    except:
+                        print "Error: unable to fecth data"
+                    finally:
+                        print allcar
+
+                    # driver id getEnd
+
                     pick = Input.askstring("Location", "Where would you liked to be picked?\n\n")
                     dest = Input.askstring("Destination", "Where would you liked to be dropped off?\n\n")
-                    b_cost = Input.askstring("Bearable Cost","How much are you willing to pay?\n\n")
+                    b_cost = Input.askstring("Bearable Cost", "How much are you willing to pay?\n\n")
                     date = datetime.datetime.now()
                     sql = "INSERT INTO request (pick, \
                         dest, reg_date, user_id,gender, bearable, status,driver_id,vehicle_id) \
                         VALUES ('%s', '%s', '%s','%s','%s','%s','%s','%s','%s')" % \
-                                (pick, dest, date, profile_username_0['text'], profile_gender_0['text'],b_cost,"pending",
-                                 row[9], row[0])
+                          (pick, dest, date, profile_username_0['text'], profile_gender_0['text'], b_cost, "pending",
+                           r_vees[9], r_vees[10])
                     print sql
                     succesfull = True
                     try:
@@ -957,15 +1078,84 @@ def main():
 
                     pass
 
-                botn1 = Button(panel, text="View Details", pady=10, font=2, relief=GROOVE, command=view)
-                botn2 = Button(panel, text="Request Vehicle", pady=10, font=2, relief=GROOVE, command=getv)
-                print store
+                def filtdes():
+                    sql = "SELECT * FROM vehicle_sharing ORDER BY `vehicle_sharing`.`start_point` ASC "
+
+                    db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
+                    cursor = db.cursor()
+                    cursor.execute(sql)
+                    hasCar = False
+                    allcar = [];
+                    veh_cars = []
+                    store = {}
+                    try:
+                        cursor.execute(sql)
+                        results = cursor.fetchall()
+                        for row_vs in results:
+                            i = 0
+                            car = []
+
+                            # car.append(row[1] +" to "+row[2])
+                            store[row_vs[2] + " to " + row_vs[3]] = int(row_vs[0])
+
+                            allcar.append(row_vs[2] + " to " + row_vs[3])
+                            i += 1
+                            hasCar = True
+                    except:
+
+                        print "Error: unable to fecth data"
+                    finally:
+                        print allcar
+                    # for var in allcar:
+                    #     for dist in allcar[0]:
+                    #         veh_cars.append(dist)
+                    combo_start['values'] = allcar
+
+                def filtdate():
+                    sql = "SELECT * FROM vehicle_sharing ORDER BY `vehicle_sharing`.`date` ASC "
+
+                    db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
+                    cursor = db.cursor()
+                    cursor.execute(sql)
+                    hasCar = False
+                    allcar = [];
+                    veh_cars = []
+                    store = {}
+                    try:
+                        cursor.execute(sql)
+                        results = cursor.fetchall()
+                        for row_vs in results:
+                            i = 0
+                            car = []
+
+                            # car.append(row[1] +" to "+row[2])
+                            store[row_vs[2] + " to " + row_vs[3]] = int(row_vs[0])
+
+                            allcar.append(row_vs[2] + " to " + row_vs[3])
+                            i += 1
+                            hasCar = True
+                    except:
+
+                        print "Error: unable to fecth data"
+                    finally:
+                        print allcar
+                    # for var in allcar:
+                    #     for dist in allcar[0]:
+                    #         veh_cars.append(dist)
+                    combo_start['values'] = allcar
+
+                botn1 = Button(panel, text="View \nDetails", pady=10, font=2, relief=GROOVE, command=view)
+                botn2 = Button(panel, text="Request \nVehicle", pady=10, font=2, relief=GROOVE, command=getv)
+                botn3 = Button(panel, text="Filter \nby Destination", pady=10, font=2, relief=GROOVE, command=filtdes)
+                botn4 = Button(panel, text="Filter \nby Date", pady=10, font=2, relief=GROOVE, command=filtdate)
 
                 label_start.grid(row=0, columnspan=3)
                 combo_start.grid(row=1, columnspan=3)
                 label_info.grid(row=2, columnspan=3)
                 botn1.grid(row=3, column=0)
                 botn2.grid(row=3, column=1)
+                botn3.grid(row=3, column=2)
+                botn4.grid(row=3, column=3)
                 combo_start.current(0)
                 panel.pack()
                 app = Vehicle(framboxx)
@@ -978,15 +1168,15 @@ def main():
 
                 window.geometry("450x350+500+300")
                 frame = LabelFrame(window, relief=RAISED, borderwidth=1, text="Vehicle Requests", padx=20, pady=30)
-                sql = """select * from request where user_id = '%s' """ % (profile_username_0['text'])
+                sql_req = """select * from request where user_id = '%s' """ % (profile_username_0['text'])
+                print sql_req + "sqlreq"
                 lb = Listbox(frame)
                 lb.pack(fill=X)
 
                 def view():
-
                     try:
                         detail = details[lb.selection_get()]
-                        print detail
+                        print lb.selection_get()
                         sql2 = """select * from users where username = '%s' """ % detail
                         print sql2
                         db2 = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
@@ -994,7 +1184,7 @@ def main():
                         cursor2.execute(sql2)
                         result = cursor2.fetchone()
                         MSGBOX.showinfo("Driver Info",
-                                        "Name: " + result[1] + "\nEmail: " + result[4] + "\nPhone Number: " + result[3])
+                                        "Name: " + result[1] + "\nEmail: " + result[3] + "\nPhone Number: " + result[4])
                     except:
                         MSGBOX.showerror("ERROR", "No Request selected")
                     finally:
@@ -1006,13 +1196,14 @@ def main():
                 try:
                     db = MySQLdb.connect(HOST, DATABASE_USERNAME, "", DATABASE)
                     cursor = db.cursor()
-                    cursor.execute(sql)
+                    cursor.execute(sql_req)
                     results = cursor.fetchall()
                     i = 0
-                    for row in results:
-                        lb.insert(i, row[1] + " to " + row[2] + " (" + row[6] + ")")
-                        details[row[1] + " to " + row[2] + " (" + row[6] + ")"] = row[7]
+                    for rowec in results:
+                        lb.insert(i, rowec[1] + " to " + rowec[2] + " (" + rowec[7] + ")")
+                        details[rowec[1] + " to " + rowec[2] + " (" + rowec[7] + ")"] = rowec[8]
                         i += 1
+                        print rowec[8]
                         pass
                 except:
                     print "Error: unable to fecth data"
@@ -1123,7 +1314,7 @@ def main():
             framboxbtm.pack(side=BOTTOM)
             btn1 = Button(framboxbtm, text="Edit Profile", pady=0, font=2, relief=GROOVE, command=edit)
             btn1.pack(side=LEFT)
-            btn2 = Button(framboxbtm, text="Request Vehicle", pady=0, font=2, relief=GROOVE, command=requestVehicle)
+            btn2 = Button(framboxbtm, text="Search Vehicle", pady=0, font=2, relief=GROOVE, command=requestVehicle)
             btn2.pack(side=LEFT)
             btn3 = Button(framboxbtm, text="View Requested Vehicle", pady=0, font=2, relief=GROOVE, command=viewreqs)
             btn3.pack(side=LEFT)
@@ -1137,6 +1328,7 @@ def main():
 
             frambox.pack(fill="both")
             appr = Vehicle(rootd)
+            rootd.attributes('-fullscreen',True)
             rootd.mainloop()
 
         if (isUser == True):
@@ -1152,15 +1344,16 @@ def main():
     bclivk = Button(frame, text="LOG IN", fg="blue", command=login)
     # bclivk.pack(side=LEFT)
 
-    bclivk.grid(column=1,row=17,columnspan=2)
+    bclivk.grid(column=1, row=17, columnspan=2)
 
     # bclivk.bind("<Button-1>",myPrint())
     frame.pack(expand="yes")
 
     app = Vehicle(root)
+    root.attributes('-fullscreen',True)
     root.mainloop()
 
-#calling main method that starts the program
+# calling main method that starts the program
 main()
 
-#request time
+# request time
