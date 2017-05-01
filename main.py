@@ -1,3 +1,7 @@
+"""
+To Whomever may enter this code:
+GOODLUCK!
+"""
 __author__ = 'OTHREE'
 
 from Tkinter import *
